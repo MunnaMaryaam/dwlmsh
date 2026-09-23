@@ -1,6 +1,18 @@
 import React from 'react';
 import { RedistributionReport, ConsignmentRecommendation } from '../types';
-import { PackagePlus, TrendingUp, Sparkles, TriangleAlert as AlertTriangle, FileSpreadsheet, CircleCheck as CheckCircle2, DollarSign, Layers, ArrowRight, ShieldCheck, Hop as Home } from 'lucide-react';
+import {
+  PackagePlus,
+  TrendingUp,
+  Sparkles,
+  AlertTriangle,
+  FileSpreadsheet,
+  CheckCircle2,
+  DollarSign,
+  Layers,
+  ArrowRight,
+  ShieldCheck,
+  Home
+} from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface ConsignmentShipmentPlannerViewProps {

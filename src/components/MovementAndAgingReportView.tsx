@@ -1,6 +1,29 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { RedistributionReport, RawInventoryRecord } from '../types';
-import { Hourglass, Activity, Flame, OctagonAlert as AlertOctagon, Clock, ArrowRightLeft, Building2, Calendar, Layers, CircleCheck as CheckCircle2, ShieldAlert, ChevronRight, TrendingDown, TrendingUp, RotateCw, Share2, Search, ListFilter as Filter, ArrowDownRight, ArrowUpRight, Sparkles, Hop as Home } from 'lucide-react';
+import {
+  Hourglass,
+  Activity,
+  Flame,
+  AlertOctagon,
+  Clock,
+  ArrowRightLeft,
+  Building2,
+  Calendar,
+  Layers,
+  CheckCircle2,
+  ShieldAlert,
+  ChevronRight,
+  TrendingDown,
+  TrendingUp,
+  RotateCw,
+  Share2,
+  Search,
+  Filter,
+  ArrowDownRight,
+  ArrowUpRight,
+  Sparkles,
+  Home
+} from 'lucide-react';
 import {
   getSavedSnapshots,
   ensureInitialHistoricalData,

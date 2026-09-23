@@ -1,6 +1,18 @@
 import React, { useState } from 'react';
 import { RedistributionReport } from '../types';
-import { TrendingUp, TriangleAlert as AlertTriangle, ShoppingBag, DollarSign, Store, ArrowRight, Download, Flame, Clock, Sparkles, ChartBar as BarChart2 } from 'lucide-react';
+import {
+  TrendingUp,
+  AlertTriangle,
+  ShoppingBag,
+  DollarSign,
+  Store,
+  ArrowRight,
+  Download,
+  Flame,
+  Clock,
+  Sparkles,
+  BarChart2
+} from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface DemandOpportunityAnalysisProps {

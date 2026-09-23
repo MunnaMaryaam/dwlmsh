@@ -1,5 +1,26 @@
 import React from 'react';
-import { LayoutDashboard, CloudUpload as UploadCloud, Gem, Clock, PackagePlus, Files, FileSpreadsheet, ArrowRightLeft, Flame, Building2, TrendingUp, FolderLock, Users, Settings, Sparkles, LogOut, X, ChevronDown, ChevronRight, ShieldCheck } from 'lucide-react';
+import {
+  LayoutDashboard,
+  UploadCloud,
+  Gem,
+  Clock,
+  PackagePlus,
+  Files,
+  FileSpreadsheet,
+  ArrowRightLeft,
+  Flame,
+  Building2,
+  TrendingUp,
+  FolderLock,
+  Users,
+  Settings,
+  Sparkles,
+  LogOut,
+  X,
+  ChevronDown,
+  ChevronRight,
+  ShieldCheck
+} from 'lucide-react';
 import { AuthUser } from '../types';
 import { DiamondWorldLogo } from './DiamondWorldLogo';
 

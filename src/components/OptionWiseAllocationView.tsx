@@ -1,7 +1,24 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { RedistributionReport, SalesTimeframe, AllocationMode } from '../types';
 import { getOptionAllocationSummary } from '../utils/redistributionEngine';
-import { ArrowDownToLine, ArrowUpFromLine, ArrowRightLeft, CircleCheck as CheckCircle2, TriangleAlert as AlertTriangle, Building2, Download, ListFilter as Filter, Hop as Home, Package, Search, ShieldCheck, SlidersHorizontal, TrendingUp, Warehouse, Circle as XCircle } from 'lucide-react';
+import {
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  ArrowRightLeft,
+  CheckCircle2,
+  AlertTriangle,
+  Building2,
+  Download,
+  Filter,
+  Home,
+  Package,
+  Search,
+  ShieldCheck,
+  SlidersHorizontal,
+  TrendingUp,
+  Warehouse,
+  XCircle,
+} from 'lucide-react';
 
 interface OptionWiseAllocationViewProps {
   report: RedistributionReport;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { TriangleAlert as AlertTriangle, ArrowRightLeft, ShieldAlert, Sparkles, ShoppingCart } from 'lucide-react';
+import { AlertTriangle, ArrowRightLeft, ShieldAlert, Sparkles, ShoppingCart } from 'lucide-react';
 import { ActionAlert, TransferOrder } from '../types';
 
 interface ActionableAlertsProps {

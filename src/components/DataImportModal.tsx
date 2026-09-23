@@ -1,5 +1,22 @@
 import React, { useState, useRef } from 'react';
-import { X, CloudUpload as UploadCloud, FileSpreadsheet, Code as Code2, FileCode, Calendar, Layers, CircleCheck as CheckCircle, CircleAlert as AlertCircle, RefreshCw, Sparkles, Database, ArrowRight, Plus, Trash2, PartyPopper } from 'lucide-react';
+import {
+  X,
+  UploadCloud,
+  FileSpreadsheet,
+  Code2,
+  FileCode,
+  Calendar,
+  Layers,
+  CheckCircle,
+  AlertCircle,
+  RefreshCw,
+  Sparkles,
+  Database,
+  ArrowRight,
+  Plus,
+  Trash2,
+  PartyPopper
+} from 'lucide-react';
 import { parseUniversalInventoryData, ParsedDataResult } from '../utils/universalParser';
 import { RawInventoryRecord, SpecialMonth, SpecialMonthType } from '../types';
 

@@ -35,7 +35,25 @@ import { SidebarNavigation } from './components/SidebarNavigation';
 import { DashboardTopHeader } from './components/DashboardTopHeader';
 import { NetSuiteTopHeader } from './components/NetSuiteTopHeader';
 import { NetSuiteHomeDashboard } from './components/NetSuiteHomeDashboard';
-import { LayoutDashboard, FileSpreadsheet, ArrowRightLeft, Flame, Building2, Gem, ShieldCheck, PackagePlus, Files, Clock, Activity, SlidersHorizontal, ChevronRight, TrendingUp, FolderLock, Hop as Home, LayoutGrid } from 'lucide-react';
+import {
+  LayoutDashboard,
+  FileSpreadsheet,
+  ArrowRightLeft,
+  Flame,
+  Building2,
+  Gem,
+  ShieldCheck,
+  PackagePlus,
+  Files,
+  Clock,
+  Activity,
+  SlidersHorizontal,
+  ChevronRight,
+  TrendingUp,
+  FolderLock,
+  Home,
+  LayoutGrid
+} from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 export default function App() {

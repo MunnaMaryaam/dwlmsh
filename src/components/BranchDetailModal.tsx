@@ -1,6 +1,23 @@
 import React, { useState } from 'react';
 import { RedistributionReport, BranchSummary } from '../types';
-import { X, Building2, Gem, ArrowDownLeft, ArrowUpRight, Printer, Download, CircleCheck as CheckCircle2, TriangleAlert as AlertTriangle, ArrowRightLeft, TrendingUp, Package, Boxes, Truck, FileSpreadsheet, ArrowRight } from 'lucide-react';
+import {
+  X,
+  Building2,
+  Gem,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Printer,
+  Download,
+  CheckCircle2,
+  AlertTriangle,
+  ArrowRightLeft,
+  TrendingUp,
+  Package,
+  Boxes,
+  Truck,
+  FileSpreadsheet,
+  ArrowRight
+} from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface BranchDetailModalProps {

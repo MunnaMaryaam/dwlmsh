@@ -1,5 +1,26 @@
 import React, { useState } from 'react';
-import { Search, Circle as HelpCircle, MessageSquare, User, Star, Clock, Hop as Home, ChevronDown, Download, Settings, LogOut, Sparkles, Layers, FolderLock, PackagePlus, ArrowRightLeft, FileSpreadsheet, Building2, Gem, Plus } from 'lucide-react';
+import {
+  Search,
+  HelpCircle,
+  MessageSquare,
+  User,
+  Star,
+  Clock,
+  Home,
+  ChevronDown,
+  Download,
+  Settings,
+  LogOut,
+  Sparkles,
+  Layers,
+  FolderLock,
+  PackagePlus,
+  ArrowRightLeft,
+  FileSpreadsheet,
+  Building2,
+  Gem,
+  Plus
+} from 'lucide-react';
 import { AuthUser, SalesTimeframe, AllocationMode } from '../types';
 import { DiamondWorldLogo } from './DiamondWorldLogo';
 

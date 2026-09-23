@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
 import { RedistributionReport, TransferOrder, ProcurementOrder } from '../types';
-import { ArrowRightLeft, CircleCheck as CheckCircle2, ListFilter as Filter, Printer, FileSpreadsheet, CircleAlert as AlertCircle, Truck, Building, Gem, ShoppingBag } from 'lucide-react';
+import {
+  ArrowRightLeft,
+  CheckCircle2,
+  Filter,
+  Printer,
+  FileSpreadsheet,
+  AlertCircle,
+  Truck,
+  Building,
+  Gem,
+  ShoppingBag
+} from 'lucide-react';
 
 interface AutomatedRedistributionTabProps {
   report: RedistributionReport;

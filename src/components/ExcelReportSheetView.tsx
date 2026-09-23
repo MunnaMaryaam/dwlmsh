@@ -1,7 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import { RedistributionReport, AllocationMode } from '../types';
-import { FileSpreadsheet, Download, ListFilter as Filter, Search, CircleCheck as CheckCircle2, TableProperties, ArrowRight, TrendingUp, Package } from 'lucide-react';
+import {
+  FileSpreadsheet,
+  Download,
+  Filter,
+  Search,
+  CheckCircle2,
+  TableProperties,
+  ArrowRight,
+  TrendingUp,
+  Package,
+  PackagePlus
+} from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { RefillDemandReport } from './RefillDemandReport';
 
 interface ExcelReportSheetViewProps {
   report: RedistributionReport;
@@ -18,7 +30,7 @@ export const ExcelReportSheetView: React.FC<ExcelReportSheetViewProps> = ({
   onSelectBranch,
   onSelectWeight
 }) => {
-  const [activeSheetTab, setActiveSheetTab] = useState<'matrix' | 'branch_summary' | 'weight_summary' | 'transfer_orders' | 'unmet_demand'>('matrix');
+  const [activeSheetTab, setActiveSheetTab] = useState<'report_breakdown' | 'refill_demand' | 'matrix' | 'branch_summary' | 'transfer_orders' | 'unmet_demand'>('report_breakdown');
   const [searchTerm, setSearchTerm] = useState('');
   const [showOnlyWithAction, setShowOnlyWithAction] = useState(false);
 
@@ -39,6 +51,103 @@ export const ExcelReportSheetView: React.FC<ExcelReportSheetViewProps> = ({
   // Export full workbook with multiple native tabs matching Excel
   const handleExportFullExcelWorkbook = () => {
     const wb = XLSX.utils.book_new();
+
+    // 0. Report Breakdown (Horizontal Multi-Branch Matrix)
+    const targetBranches = branches.length > 0 ? branches : [
+      'Bashundhara', 'Baily-Road', 'Baitul Mukarram', 'Bogura', 'Barishal', 'Chuadanga', 'Chittagong - #01'
+    ];
+    const targetCarats = weights.length > 0 ? weights : [
+      '0.02', '0.03', '0.04', '0.05', '0.06', '0.07', '0.08', '0.09', '0.10', '0.11', '0.12'
+    ];
+
+    const breakdownRows: any[][] = [];
+    breakdownRows.push(['Sales-Driven Distribution: Diamond Solitaire Earrings']);
+    breakdownRows.push([]);
+    breakdownRows.push(['01-05-2026 to 19-09-2026']);
+
+    const row4: string[] = ['Particulars Name', 'DWL'];
+    targetBranches.forEach(b => {
+      row4.push(b, '', '', '', '');
+    });
+    row4.push('Total Stock', 'Total Sold', 'Refill Demand');
+    breakdownRows.push(row4);
+
+    const row5: string[] = ['', 'Stock'];
+    targetBranches.forEach(() => {
+      row5.push('SOLD QTY', 'Current Stock', 'Average', 'Contribution %', 'Move IN/OUT');
+    });
+    row5.push('', '', '');
+    breakdownRows.push(row5);
+
+    targetCarats.forEach(carat => {
+      const dwlStock = report.matrix.cells['DWL']?.[carat]?.stock || 0;
+      const r: any[] = [carat, dwlStock];
+      let tStock = dwlStock;
+      let tSold = 0;
+      const totalSoldCarat = targetBranches.reduce((acc, br) => acc + (report.matrix.cells[br]?.[carat]?.sold || 0), 0);
+
+      targetBranches.forEach(b => {
+        const cell = report.matrix.cells[b]?.[carat];
+        const sold = cell?.sold || 0;
+        const stock = cell?.stock || 0;
+        const avg = cell?.sales3M ? Math.round(cell.sales3M / 3) : Math.round(sold / 3);
+        const contrib = totalSoldCarat > 0 ? `${((sold / totalSoldCarat) * 100).toFixed(0)}%` : '0%';
+        const move = cell?.netMove || 0;
+
+        tStock += stock;
+        tSold += sold;
+        r.push(sold, stock, avg, contrib, move);
+      });
+      const refillDemand = report.weightSummaries.find(w => w.weight === carat)?.unmetShortage || (tSold > tStock ? tSold - tStock : 0);
+      r.push(tStock, tSold, refillDemand);
+      breakdownRows.push(r);
+    });
+
+    const wsBreakdown = XLSX.utils.aoa_to_sheet(breakdownRows);
+    wsBreakdown['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } },
+    ];
+    let colC = 2;
+    targetBranches.forEach(() => {
+      wsBreakdown['!merges']?.push({
+        s: { r: 3, c: colC },
+        e: { r: 3, c: colC + 4 }
+      });
+      colC += 5;
+    });
+    wsBreakdown['!merges']?.push({ s: { r: 3, c: colC }, e: { r: 4, c: colC } });
+    wsBreakdown['!merges']?.push({ s: { r: 3, c: colC + 1 }, e: { r: 4, c: colC + 1 } });
+    wsBreakdown['!merges']?.push({ s: { r: 3, c: colC + 2 }, e: { r: 4, c: colC + 2 } });
+    XLSX.utils.book_append_sheet(wb, wsBreakdown, 'Report Breakdown');
+
+    // 0.1 Dedicated Refill Demand Requisitions Sheet
+    const refillRows: any[][] = [
+      ['SL', 'Particulars', 'Sold Demand', 'Available Stock', 'Refill Demand (Qty)', 'Urgency', 'Requesting Branches', 'Replenishment Rationale']
+    ];
+    report.weightSummaries
+      .filter(w => w.unmetShortage > 0 || (w.soldQty > 0 && w.currentStock === 0))
+      .forEach((w, idx) => {
+        const reqBranches = report.matrix.branches
+          .filter(b => {
+            const cell = report.matrix.cells[b]?.[w.weight];
+            return cell && cell.sold > cell.stock;
+          })
+          .join(', ');
+        refillRows.push([
+          idx + 1,
+          itemUnit === 'ct' ? `${w.weight} ct` : w.weight,
+          w.soldQty,
+          w.currentStock,
+          w.unmetShortage || (w.soldQty > w.currentStock ? w.soldQty - w.currentStock : 0),
+          w.currentStock === 0 ? 'CRITICAL' : 'HIGH',
+          reqBranches || 'Central Stock Pool',
+          w.currentStock === 0
+            ? '100% Stockout: Customer demand with zero company stock. Refill needed immediately.'
+            : 'Demand exceeds inventory. Urgent stock replenishment required.'
+        ]);
+      });
+    const wsRefill = XLSX.utils.aoa_to_sheet(refillRows);
+    XLSX.utils.book_append_sheet(wb, wsRefill, 'Refill Demand');
 
     // 1. Matrix Sheet
     const matrixRows: any[] = [];
@@ -122,6 +231,103 @@ export const ExcelReportSheetView: React.FC<ExcelReportSheetViewProps> = ({
     XLSX.writeFile(wb, filename);
   };
 
+  // Export Sales-Driven Distribution: Diamond Solitaire Earrings side-by-side branch comparison matrix
+  const handleExportSalesDrivenDistributionMatrix = () => {
+    const wb = XLSX.utils.book_new();
+
+    const targetBranches = branches.length > 0 ? branches : [
+      'Bashundhara',
+      'Baily-Road',
+      'Baitul Mukarram',
+      'Bogura',
+      'Barishal',
+      'Chuadanga',
+      'Chittagong - #01'
+    ];
+
+    const targetCarats = weights.length > 0 ? weights : [
+      '0.02', '0.03', '0.04', '0.05', '0.06',
+      '0.07', '0.08', '0.09', '0.10', '0.11', '0.12'
+    ];
+
+    const rows: any[][] = [];
+
+    // Row 1 & 2: Title Block
+    rows.push(['Sales-Driven Distribution: Diamond Solitaire Earrings']);
+    rows.push([]);
+    // Row 3: Active Date Range
+    rows.push(['01-05-2026 to 19-09-2026']);
+
+    // Row 4: Top Grouping Headers
+    const row4: string[] = ['Particulars Name', 'DWL'];
+    targetBranches.forEach(b => {
+      row4.push(b, '', '', '', '');
+    });
+    row4.push('Total Stock', 'Total Sold', 'Refill Demand');
+    rows.push(row4);
+
+    // Row 5: Sub Headers
+    const row5: string[] = ['', 'Stock'];
+    targetBranches.forEach(() => {
+      row5.push('SOLD QTY', 'Current Stock', 'Average', 'Contribution %', 'Move IN/OUT');
+    });
+    row5.push('', '', '');
+    rows.push(row5);
+
+    // Row 6+: Particulars Rows
+    targetCarats.forEach(carat => {
+      const dwlStock = report.matrix.cells['DWL']?.[carat]?.stock || 0;
+      const row: any[] = [carat, dwlStock];
+
+      let totalStock = dwlStock;
+      let totalSold = 0;
+
+      const totalSoldForCarat = targetBranches.reduce((acc, br) => acc + (report.matrix.cells[br]?.[carat]?.sold || 0), 0);
+
+      targetBranches.forEach(b => {
+        const cell = report.matrix.cells[b]?.[carat];
+        const soldQty = cell?.sold || 0;
+        const currentStock = cell?.stock || 0;
+        const avg = cell?.sales3M ? Math.round(cell.sales3M / 3) : Math.round(soldQty / 3);
+        const contrib = totalSoldForCarat > 0 ? `${((soldQty / totalSoldForCarat) * 100).toFixed(1)}%` : '0%';
+        const move = cell?.netMove || 0;
+
+        totalStock += currentStock;
+        totalSold += soldQty;
+
+        row.push(soldQty, currentStock, avg, contrib, move);
+      });
+
+      const refillDemand = report.weightSummaries.find(w => w.weight === carat)?.unmetShortage || (totalSold > totalStock ? totalSold - totalStock : 0);
+      row.push(totalStock, totalSold, refillDemand);
+      rows.push(row);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // Set merged cells for top headers
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } }, // Title block A1:B2
+    ];
+
+    let colIdx = 2;
+    targetBranches.forEach(() => {
+      ws['!merges']?.push({
+        s: { r: 3, c: colIdx },
+        e: { r: 3, c: colIdx + 4 }
+      });
+      colIdx += 5;
+    });
+
+    // Merge Total Stock, Total Sold & Refill Demand headers
+    ws['!merges']?.push({ s: { r: 3, c: colIdx }, e: { r: 4, c: colIdx } });
+    ws['!merges']?.push({ s: { r: 3, c: colIdx + 1 }, e: { r: 4, c: colIdx + 1 } });
+    ws['!merges']?.push({ s: { r: 3, c: colIdx + 2 }, e: { r: 4, c: colIdx + 2 } });
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Distribution Matrix');
+    XLSX.writeFile(wb, 'Sales_Driven_Distribution_Report.xlsx');
+  };
+
   return (
     <div className="space-y-4">
       
@@ -147,14 +353,25 @@ export const ExcelReportSheetView: React.FC<ExcelReportSheetViewProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={handleExportFullExcelWorkbook}
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg bg-teal-700 hover:bg-teal-600 text-white transition-all shadow-sm active:scale-95 cursor-pointer"
-            title="Download full multi-sheet Microsoft Excel workbook"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export Excel Workbook (.XLSX)</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleExportSalesDrivenDistributionMatrix}
+              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/30 transition-all shadow-sm active:scale-95 cursor-pointer"
+              title="Download side-by-side multi-branch horizontal matrix (.xlsx)"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <span>Multi-Branch Matrix (.XLSX)</span>
+            </button>
+
+            <button
+              onClick={handleExportFullExcelWorkbook}
+              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg bg-teal-700 hover:bg-teal-600 text-white transition-all shadow-sm active:scale-95 cursor-pointer"
+              title="Download full multi-sheet Microsoft Excel workbook"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export Full Workbook (.XLSX)</span>
+            </button>
+          </div>
         </div>
 
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
@@ -204,6 +421,30 @@ export const ExcelReportSheetView: React.FC<ExcelReportSheetViewProps> = ({
         <div className="flex items-center justify-between gap-2 pt-2 flex-wrap">
           <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg text-xs overflow-x-auto max-w-full">
             <button
+              onClick={() => setActiveSheetTab('report_breakdown')}
+              className={`px-3 py-1.5 rounded-md font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                activeSheetTab === 'report_breakdown'
+                  ? 'bg-amber-600 text-white shadow-sm ring-1 ring-amber-400/40'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <TableProperties className="w-3.5 h-3.5" />
+              <span>Sheet 1: Report Breakdown</span>
+            </button>
+
+            <button
+              onClick={() => setActiveSheetTab('refill_demand')}
+              className={`px-3 py-1.5 rounded-md font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                activeSheetTab === 'refill_demand'
+                  ? 'bg-amber-600 text-white shadow-sm ring-1 ring-amber-400/40'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <PackagePlus className="w-3.5 h-3.5" />
+              <span>Sheet 2: Refill Demand ({report.totalNewStockToBuy} {itemUnit})</span>
+            </button>
+
+            <button
               onClick={() => setActiveSheetTab('matrix')}
               className={`px-3 py-1.5 rounded-md font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                 activeSheetTab === 'matrix'
@@ -212,7 +453,7 @@ export const ExcelReportSheetView: React.FC<ExcelReportSheetViewProps> = ({
               }`}
             >
               <FileSpreadsheet className="w-3.5 h-3.5" />
-              <span>Sheet 1: Redistribution Matrix</span>
+              <span>Sheet 3: Redistribution Matrix</span>
             </button>
 
             <button
@@ -223,7 +464,7 @@ export const ExcelReportSheetView: React.FC<ExcelReportSheetViewProps> = ({
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <span>Sheet 2: Branch 360 Summary</span>
+              <span>Sheet 4: Branch 360 Summary</span>
             </button>
 
             <button
@@ -234,7 +475,7 @@ export const ExcelReportSheetView: React.FC<ExcelReportSheetViewProps> = ({
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <span>Sheet 3: Transfer Orders ({report.transferOrders.length})</span>
+              <span>Sheet 5: Transfer Orders ({report.transferOrders.length})</span>
             </button>
 
             <button
@@ -245,7 +486,7 @@ export const ExcelReportSheetView: React.FC<ExcelReportSheetViewProps> = ({
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <span>Sheet 4: Demand &amp; Procurement ({report.totalNewStockToBuy} {itemUnit})</span>
+              <span>Sheet 6: Demand &amp; Procurement</span>
             </button>
           </div>
 
@@ -263,7 +504,269 @@ export const ExcelReportSheetView: React.FC<ExcelReportSheetViewProps> = ({
         </div>
       </div>
 
-      {/* Sheet 1: Matrix View (Classic Excel layout) */}
+      {/* Sheet 1: Report Breakdown (Side-by-Side Multi-Branch Comparison Matrix) */}
+      {activeSheetTab === 'report_breakdown' && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden space-y-3 p-4 sm:p-5">
+          {/* Executive Title & Period Block (Matching Corporate Format) */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+            <div>
+              <div className="inline-block border-2 border-slate-800 dark:border-slate-600 bg-[#cfe2f3] dark:bg-slate-800/90 text-slate-900 dark:text-white px-3.5 py-1.5 rounded-sm font-black text-sm sm:text-base shadow-sm">
+                Sales-Driven Distribution: <span className="font-extrabold text-slate-950 dark:text-teal-300">Diamond Solitaire Earrings</span>
+              </div>
+              <div className="text-xs font-bold font-mono text-slate-800 dark:text-slate-200 mt-1.5 flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">
+                  Active Period: 01-05-2026 to 19-09-2026
+                </span>
+                <span className="text-[11px] text-slate-500 font-normal">
+                  (Flat horizontal multi-branch inventory balance)
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={handleExportSalesDrivenDistributionMatrix}
+              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-lg bg-amber-600 hover:bg-amber-500 text-white transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
+              title="Download exact Excel matrix file (.xlsx)"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Export Report Breakdown (.XLSX)</span>
+            </button>
+          </div>
+
+          {/* Side-by-Side Horizontal Branch Matrix Table */}
+          <div className="overflow-x-auto border-2 border-slate-400 dark:border-slate-700 rounded-lg max-h-[640px] scrollbar-thin">
+            <table className="w-full text-left text-xs border-collapse font-sans select-text">
+              <thead className="sticky top-0 z-20 shadow-sm border-b-2 border-slate-400 dark:border-slate-600">
+                {/* Row 4: Branch Grouping */}
+                <tr className="bg-[#d9d9d9] dark:bg-slate-800 text-slate-900 dark:text-white text-center">
+                  <th
+                    rowSpan={2}
+                    className="py-2.5 px-3 border border-slate-400 dark:border-slate-700 text-center font-black sticky left-0 bg-[#d9d9d9] dark:bg-slate-800 z-30 min-w-[130px] tracking-tight"
+                  >
+                    Particulars Name
+                  </th>
+                  <th
+                    className="py-2 px-3 border border-slate-400 dark:border-slate-700 text-center font-black text-sm bg-[#d9d9d9] dark:bg-slate-800 min-w-[65px]"
+                  >
+                    DWL
+                  </th>
+                  {(branches.length > 0 ? branches : ['Bashundhara', 'Baily-Road', 'Baitul Mukarram', 'Bogura', 'Barishal', 'Chuadanga', 'Chittagong - #01']).map((b) => (
+                    <th
+                      key={`grp-${b}`}
+                      colSpan={5}
+                      className="py-2 px-3 border-x-2 border-y border-slate-500 dark:border-slate-600 text-center font-black text-sm bg-[#d9d9d9] dark:bg-slate-800 text-slate-900 dark:text-white tracking-tight"
+                    >
+                      {b}
+                    </th>
+                  ))}
+                  <th
+                    rowSpan={2}
+                    className="py-2 px-3 border border-slate-400 dark:border-slate-700 text-center font-bold italic bg-[#d9d9d9] dark:bg-slate-800 min-w-[85px]"
+                  >
+                    Total Stock
+                  </th>
+                  <th
+                    rowSpan={2}
+                    className="py-2 px-3 border border-slate-400 dark:border-slate-700 text-center font-bold italic bg-[#d9d9d9] dark:bg-slate-800 min-w-[85px]"
+                  >
+                    Total Sold
+                  </th>
+                  <th
+                    rowSpan={2}
+                    className="py-2 px-3 border border-slate-400 dark:border-slate-700 text-center font-bold italic bg-amber-200 dark:bg-amber-950/80 text-amber-950 dark:text-amber-200 min-w-[95px]"
+                  >
+                    Refill Demand
+                  </th>
+                </tr>
+
+                {/* Row 5: Metric Columns per Branch */}
+                <tr className="bg-[#e7e6e6] dark:bg-slate-850 text-slate-800 dark:text-slate-200 text-[10px] font-bold text-center border-b-2 border-slate-400 dark:border-slate-600">
+                  <th className="py-1.5 px-2 border border-slate-400 dark:border-slate-700">
+                    Stock
+                  </th>
+                  {(branches.length > 0 ? branches : ['Bashundhara', 'Baily-Road', 'Baitul Mukarram', 'Bogura', 'Barishal', 'Chuadanga', 'Chittagong - #01']).map((b) => (
+                    <React.Fragment key={`sub-${b}`}>
+                      <th className="py-1.5 px-2 border border-slate-300 dark:border-slate-700 min-w-[65px]">
+                        SOLD QTY
+                      </th>
+                      <th className="py-1.5 px-2 border border-slate-300 dark:border-slate-700 min-w-[70px]">
+                        Current Stock
+                      </th>
+                      <th className="py-1.5 px-2 border border-slate-300 dark:border-slate-700 min-w-[55px]">
+                        Average
+                      </th>
+                      <th className="py-1.5 px-2 border border-slate-300 dark:border-slate-700 min-w-[75px]">
+                        Contribution %
+                      </th>
+                      <th className="py-1.5 px-2 border-r-2 border-l border-y border-slate-400 dark:border-slate-600 min-w-[75px] bg-[#bfbfbf] dark:bg-slate-700 text-slate-900 dark:text-white">
+                        Move IN/OUT
+                      </th>
+                    </React.Fragment>
+                  ))}
+                </tr>
+              </thead>
+
+              {/* Row 6+: Particulars Data Matrix */}
+              <tbody className="divide-y divide-slate-300 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                {(weights.length > 0 ? weights : ['0.02', '0.03', '0.04', '0.05', '0.06', '0.07', '0.08', '0.09', '0.10', '0.11', '0.12']).map((carat) => {
+                  const dwlStock = report.matrix.cells['DWL']?.[carat]?.stock || 0;
+                  const currentBranches = branches.length > 0 ? branches : ['Bashundhara', 'Baily-Road', 'Baitul Mukarram', 'Bogura', 'Barishal', 'Chuadanga', 'Chittagong - #01'];
+
+                  let rowTotalStock = dwlStock;
+                  let rowTotalSold = 0;
+
+                  const totalSoldForCarat = currentBranches.reduce(
+                    (acc, br) => acc + (report.matrix.cells[br]?.[carat]?.sold || 0),
+                    0
+                  );
+
+                  return (
+                    <tr key={carat} className="hover:bg-slate-50/90 dark:hover:bg-slate-800/60 transition-colors">
+                      {/* Particulars (Carat Size) */}
+                      <td className="py-1.5 px-3 font-mono font-extrabold text-slate-900 dark:text-white sticky left-0 bg-white dark:bg-slate-900 z-10 border border-slate-300 dark:border-slate-700 text-center">
+                        {carat}
+                      </td>
+
+                      {/* DWL Stock */}
+                      <td className="py-1 px-2 text-right font-mono text-xs border border-slate-300 dark:border-slate-700 font-semibold text-slate-800 dark:text-slate-200">
+                        {dwlStock}
+                      </td>
+
+                      {/* 5 Distinct Metrics for each branch */}
+                      {currentBranches.map((b) => {
+                        const cell = report.matrix.cells[b]?.[carat];
+                        const sold = cell?.sold || 0;
+                        const stock = cell?.stock || 0;
+                        const avg = cell?.sales3M ? Math.round(cell.sales3M / 3) : Math.round(sold / 3);
+                        const contrib = totalSoldForCarat > 0 ? `${((sold / totalSoldForCarat) * 100).toFixed(0)}%` : '0%';
+                        const move = cell?.netMove || 0;
+
+                        rowTotalStock += stock;
+                        rowTotalSold += sold;
+
+                        return (
+                          <React.Fragment key={`cell-${b}-${carat}`}>
+                            <td className="py-1 px-2 text-right font-mono text-xs border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white">
+                              {sold}
+                            </td>
+                            <td className="py-1 px-2 text-right font-mono text-xs border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                              {stock}
+                            </td>
+                            <td className="py-1 px-2 text-right font-mono text-xs border border-slate-300 dark:border-slate-700 text-slate-500">
+                              {avg}
+                            </td>
+                            <td className="py-1 px-2 text-right font-mono text-xs border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-medium">
+                              {contrib}
+                            </td>
+                            <td
+                              className={`py-1 px-2 text-right font-mono text-xs border-x-2 border-y border-slate-400 dark:border-slate-700 font-extrabold ${
+                                move > 0
+                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                  : move < 0
+                                  ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                                  : 'text-slate-500 dark:text-slate-400'
+                              }`}
+                            >
+                              {move > 0 ? `+${move}` : move}
+                            </td>
+                          </React.Fragment>
+                        );
+                      })}
+
+                      {/* Total Stock */}
+                      <td className="py-1 px-3 text-right font-mono text-xs border border-slate-300 dark:border-slate-700 font-extrabold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800/40">
+                        {rowTotalStock}
+                      </td>
+
+                      {/* Total Sold */}
+                      <td className="py-1 px-3 text-right font-mono text-xs border border-slate-300 dark:border-slate-700 font-extrabold text-blue-600 dark:text-cyan-400 bg-slate-50 dark:bg-slate-800/40">
+                        {rowTotalSold}
+                      </td>
+
+                      {/* Refill Demand */}
+                      {(() => {
+                        const refillQty = report.weightSummaries.find(w => w.weight === carat)?.unmetShortage || (rowTotalSold > rowTotalStock ? rowTotalSold - rowTotalStock : 0);
+                        return (
+                          <td className={`py-1 px-3 text-right font-mono text-xs border border-slate-300 dark:border-slate-700 font-black ${
+                            refillQty > 0
+                              ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
+                              : 'text-slate-400 dark:text-slate-600 bg-slate-50 dark:bg-slate-800/40'
+                          }`}>
+                            {refillQty > 0 ? `+${refillQty}` : '0'}
+                          </td>
+                        );
+                      })()}
+                    </tr>
+                  );
+                })}
+              </tbody>
+
+              {/* Total Row */}
+              <tfoot className="bg-[#e7e6e6] dark:bg-slate-800 font-bold border-t-2 border-slate-400 dark:border-slate-600">
+                <tr>
+                  <td className="py-2 px-3 text-slate-900 dark:text-white font-black border border-slate-400 dark:border-slate-700 sticky left-0 bg-[#e7e6e6] dark:bg-slate-800 z-10 text-center">
+                    Total
+                  </td>
+                  <td className="py-2 px-2 text-right font-mono font-black border border-slate-400 dark:border-slate-700 text-slate-900 dark:text-white">
+                    {(weights.length > 0 ? weights : ['0.02', '0.03', '0.04', '0.05', '0.06', '0.07', '0.08', '0.09', '0.10', '0.11', '0.12']).reduce(
+                      (acc, c) => acc + (report.matrix.cells['DWL']?.[c]?.stock || 0),
+                      0
+                    )}
+                  </td>
+                  {(branches.length > 0 ? branches : ['Bashundhara', 'Baily-Road', 'Baitul Mukarram', 'Bogura', 'Barishal', 'Chuadanga', 'Chittagong - #01']).map((b) => {
+                    const currentWeights = weights.length > 0 ? weights : ['0.02', '0.03', '0.04', '0.05', '0.06', '0.07', '0.08', '0.09', '0.10', '0.11', '0.12'];
+                    const branchSold = currentWeights.reduce((acc, c) => acc + (report.matrix.cells[b]?.[c]?.sold || 0), 0);
+                    const branchStock = currentWeights.reduce((acc, c) => acc + (report.matrix.cells[b]?.[c]?.stock || 0), 0);
+                    const branchMove = currentWeights.reduce((acc, c) => acc + (report.matrix.cells[b]?.[c]?.netMove || 0), 0);
+
+                    return (
+                      <React.Fragment key={`foot-${b}`}>
+                        <td className="py-2 px-2 text-right font-mono font-black border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white">
+                          {branchSold}
+                        </td>
+                        <td className="py-2 px-2 text-right font-mono font-black border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white">
+                          {branchStock}
+                        </td>
+                        <td className="py-2 px-2 text-right font-mono font-black border border-slate-300 dark:border-slate-700 text-slate-500">
+                          -
+                        </td>
+                        <td className="py-2 px-2 text-right font-mono font-black border border-slate-300 dark:border-slate-700 text-slate-500">
+                          -
+                        </td>
+                        <td className="py-2 px-2 text-right font-mono font-black border-x-2 border-y border-slate-400 dark:border-slate-600 bg-[#bfbfbf] dark:bg-slate-700 text-slate-900 dark:text-white">
+                          {branchMove > 0 ? `+${branchMove}` : branchMove}
+                        </td>
+                      </React.Fragment>
+                    );
+                  })}
+                  <td className="py-2 px-3 text-right font-mono font-black border border-slate-400 dark:border-slate-700 text-slate-900 dark:text-white">
+                    {report.totalCurrentStock}
+                  </td>
+                  <td className="py-2 px-3 text-right font-mono font-black border border-slate-400 dark:border-slate-700 text-blue-600 dark:text-cyan-400">
+                    {report.totalSold}
+                  </td>
+                  <td className="py-2 px-3 text-right font-mono font-black border border-slate-400 dark:border-slate-700 bg-amber-200/60 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">
+                    {report.totalNewStockToBuy}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Sheet 2: Refill Demand & Outlet Stock Requisitions */}
+      {activeSheetTab === 'refill_demand' && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
+          <RefillDemandReport
+            report={report}
+            onSelectBranch={onSelectBranch}
+            onSelectWeight={onSelectWeight}
+          />
+        </div>
+      )}
+
+      {/* Sheet 3: Matrix View (Classic Excel layout) */}
       {activeSheetTab === 'matrix' && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
           <div className="bg-slate-100 dark:bg-slate-800/80 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">

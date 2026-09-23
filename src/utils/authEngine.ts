@@ -1,17 +1,44 @@
 import { AuthUser } from '../types';
 
 const SESSION_SNAPSHOT_KEY = 'dwl_secure_session_snapshot';
+const SESSION_TOKEN_KEY = 'dwl_secure_session_token';
+
+function getStoredToken(): string | null {
+  try {
+    return sessionStorage.getItem(SESSION_TOKEN_KEY) || localStorage.getItem(SESSION_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function setStoredToken(token: string | null): void {
+  try {
+    if (!token) {
+      sessionStorage.removeItem(SESSION_TOKEN_KEY);
+      localStorage.removeItem(SESSION_TOKEN_KEY);
+    } else {
+      sessionStorage.setItem(SESSION_TOKEN_KEY, token);
+      localStorage.setItem(SESSION_TOKEN_KEY, token);
+    }
+  } catch {
+    // Storage access may be restricted
+  }
+}
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
   let response: Response;
+  const token = getStoredToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}`, 'X-DWL-Token': token } : {}),
+    ...((options.headers as Record<string, string>) || {}),
+  };
+
   try {
     response = await fetch(url, {
       ...options,
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(options.headers || {})
-      }
+      headers,
     });
   } catch {
     throw new Error('Could not reach the server. Check your internet connection and try again.');
@@ -27,9 +54,6 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
 
   if (!response.ok) {
     if (payload.error) throw new Error(payload.error);
-    // The server returned something other than our expected JSON error shape
-    // (e.g. a platform-level 404/500 page) — surface the status code instead
-    // of a silent generic message, so a deployment issue is easy to spot.
     throw new Error(`Server responded with an unexpected error (HTTP ${response.status}). Please verify the deployment is up to date.`);
   }
   return payload as T;
@@ -37,19 +61,26 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
 
 export function getCurrentSession(): AuthUser | null {
   try {
-    const raw = sessionStorage.getItem(SESSION_SNAPSHOT_KEY);
+    const raw = sessionStorage.getItem(SESSION_SNAPSHOT_KEY) || localStorage.getItem(SESSION_SNAPSHOT_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
 }
 
-export function setCurrentSession(user: AuthUser | null): void {
+export function setCurrentSession(user: AuthUser | null, token?: string | null): void {
   try {
-    if (!user) sessionStorage.removeItem(SESSION_SNAPSHOT_KEY);
-    else sessionStorage.setItem(SESSION_SNAPSHOT_KEY, JSON.stringify(user));
+    if (!user) {
+      sessionStorage.removeItem(SESSION_SNAPSHOT_KEY);
+      localStorage.removeItem(SESSION_SNAPSHOT_KEY);
+      setStoredToken(null);
+    } else {
+      sessionStorage.setItem(SESSION_SNAPSHOT_KEY, JSON.stringify(user));
+      localStorage.setItem(SESSION_SNAPSHOT_KEY, JSON.stringify(user));
+      if (token) setStoredToken(token);
+    }
   } catch {
-    // Session snapshot is only a UI convenience; the real session is an httpOnly cookie.
+    // Session snapshot is only a UI convenience; the real session is an httpOnly cookie + bearer token.
   }
 }
 
@@ -63,18 +94,19 @@ export async function restoreSession(): Promise<AuthUser | null> {
     setCurrentSession(result.user);
     return result.user;
   } catch {
-    setCurrentSession(null);
-    return null;
+    // If backend restore fails, fallback to local snapshot temporarily if available
+    const local = getCurrentSession();
+    return local;
   }
 }
 
 export async function authenticateUser(username: string, password: string): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
   try {
-    const result = await request<{ user: AuthUser }>('/api/auth/login', {
+    const result = await request<{ user: AuthUser; token?: string }>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ username, password })
     });
-    setCurrentSession(result.user);
+    setCurrentSession(result.user, result.token);
     return { success: true, user: result.user };
   } catch (error: any) {
     return { success: false, error: error.message || 'Invalid credentials.' };
@@ -86,6 +118,7 @@ export async function logoutCurrentSession(): Promise<void> {
     await request('/api/auth/logout', { method: 'POST' });
   } finally {
     setCurrentSession(null);
+    setStoredToken(null);
   }
 }
 

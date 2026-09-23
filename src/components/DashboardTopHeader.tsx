@@ -1,5 +1,13 @@
 import React from 'react';
-import { Menu, Download, CloudUpload as UploadCloud, Calendar, Sparkles, RefreshCw, FolderLock } from 'lucide-react';
+import {
+  Menu,
+  Download,
+  UploadCloud,
+  Calendar,
+  Sparkles,
+  RefreshCw,
+  FolderLock
+} from 'lucide-react';
 import { SalesTimeframe } from '../types';
 
 interface DashboardTopHeaderProps {

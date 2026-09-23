@@ -1,6 +1,23 @@
 import React, { useState } from 'react';
 import { RedistributionReport, WeightSummary } from '../types';
-import { X, Gem, Building2, MapPin, CircleCheck as CheckCircle2, TriangleAlert as AlertTriangle, ArrowRight, Truck, ArrowDownLeft, ArrowUpRight, ShoppingBag, Download, Flame, Store, Boxes, Circle as HelpCircle } from 'lucide-react';
+import {
+  X,
+  Gem,
+  Building2,
+  MapPin,
+  CheckCircle2,
+  AlertTriangle,
+  ArrowRight,
+  Truck,
+  ArrowDownLeft,
+  ArrowUpRight,
+  ShoppingBag,
+  Download,
+  Flame,
+  Store,
+  Boxes,
+  HelpCircle
+} from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface ProductLocationModalProps {

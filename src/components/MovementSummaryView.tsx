@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { RedistributionReport, TransferOrder } from '../types';
-import { ArrowLeftRight, ArrowUpRight, ArrowDownLeft, CircleCheck as CheckCircle2, Clock, Download, ListFilter as Filter, Search, Sparkles, Layers, Store } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  ArrowUpRight,
+  ArrowDownLeft,
+  CheckCircle2,
+  Clock,
+  Download,
+  Filter,
+  Search,
+  Sparkles,
+  Layers,
+  Store
+} from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface MovementSummaryViewProps {

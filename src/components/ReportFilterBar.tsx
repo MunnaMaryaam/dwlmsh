@@ -1,5 +1,13 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Building2, Gem, ListFilter as Filter, X, Search, Layers, RefreshCw } from 'lucide-react';
+import {
+  Building2,
+  Gem,
+  Filter,
+  X,
+  Search,
+  Layers,
+  RefreshCw
+} from 'lucide-react';
 import { RawInventoryRecord } from '../types';
 
 export interface ReportFilters {

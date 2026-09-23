@@ -1,6 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { RedistributionReport, BranchSummary, WeightSummary } from '../types';
-import { Building2, Gem, Search, X, ArrowRight, TrendingUp, Package, CircleCheck as CheckCircle2, TriangleAlert as AlertTriangle, ArrowDownLeft, ArrowUpRight, Flame, Store, MapPin } from 'lucide-react';
+import {
+  Building2,
+  Gem,
+  Search,
+  X,
+  ArrowRight,
+  TrendingUp,
+  Package,
+  CheckCircle2,
+  AlertTriangle,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Flame,
+  Store,
+  MapPin
+} from 'lucide-react';
 
 interface BranchProductSearchBarProps {
   report: RedistributionReport;

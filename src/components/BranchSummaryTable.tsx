@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { RedistributionReport, BranchSummary } from '../types';
-import { Building2, Search, ArrowUpDown, CircleCheck as CheckCircle, TriangleAlert as AlertTriangle, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { Building2, Search, ArrowUpDown, CheckCircle, AlertTriangle, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 
 interface BranchSummaryTableProps {
   report: RedistributionReport;

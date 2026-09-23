@@ -1,5 +1,29 @@
 import React, { useState } from 'react';
-import { X, Settings, Palette, User, FileSliders as Sliders, Database, Shield, Check, Lock, KeyRound, CircleCheck as CheckCircle2, CircleAlert as AlertCircle, Download, Upload, RefreshCw, Sun, Moon, Sparkles, Layers, DollarSign, Circle as HelpCircle, FileSpreadsheet, Cpu } from 'lucide-react';
+import {
+  X,
+  Settings,
+  Palette,
+  User,
+  Sliders,
+  Database,
+  Shield,
+  Check,
+  Lock,
+  KeyRound,
+  CheckCircle2,
+  AlertCircle,
+  Download,
+  Upload,
+  RefreshCw,
+  Sun,
+  Moon,
+  Sparkles,
+  Layers,
+  DollarSign,
+  HelpCircle,
+  FileSpreadsheet,
+  Cpu
+} from 'lucide-react';
 import { AuthUser } from '../types';
 import {
   AppSettings,

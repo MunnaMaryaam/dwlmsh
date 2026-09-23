@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+:root {
+  /* লোগোর মূল কালার প্যালেট */
+  --logo-gradient-top: #9c27b0;     /* Deep Magenta-Violet */
+  --logo-gradient-bottom: #4db6ac;  /* Mint Green / Teal */
+  
+  /* অ্যাপের ইউজার ইন্টারফেস ও টেক্সট কালার */
+  --bg-dark-card: #120c1f;          /* ডান পাশের সাইন-ইন কার্ডের জন্য ডার্ক ভায়োলেট */
+  --text-primary-gold: #dfba6b;     /* প্রফেশনাল গোল্ডেন টেক্সট ও বাটনের জন্য */
+  --text-white: #ffffff;            /* মূল টাইটেল ও লোগোর জন্য পিওর হোয়াইট */
+  
+  /* বাটন ও ইন্টারেক্টিভ এলিমেন্ট */
+  --btn-gold-gradient: linear-gradient(90deg, #e5c07b, #c49a45);
+  --card-border-glow: rgba(77, 182, 172, 0.15); /* মিন্ট গ্রিনের হালকা গ্লো ইফেক্ট */
+}
+
 @theme {
   --font-body: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;

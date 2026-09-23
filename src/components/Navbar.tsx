@@ -1,5 +1,22 @@
 import React from 'react';
-import { Sparkles, FolderLock, Download, RotateCcw, Calendar, Gem, ShieldAlert, Smartphone, CloudUpload as UploadCloud, Hop as Home, Users, LogOut, ShieldCheck, UserCheck, Settings, LayoutGrid } from 'lucide-react';
+import {
+  Sparkles,
+  FolderLock,
+  Download,
+  RotateCcw,
+  Calendar,
+  Gem,
+  ShieldAlert,
+  Smartphone,
+  UploadCloud,
+  Home,
+  Users,
+  LogOut,
+  ShieldCheck,
+  UserCheck,
+  Settings,
+  LayoutGrid
+} from 'lucide-react';
 import { AuthUser } from '../types';
 import { DiamondWorldLogo } from './DiamondWorldLogo';
 
