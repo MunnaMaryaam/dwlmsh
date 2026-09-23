@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 100" width="100%" height="100%">
+  <defs>
+    <!-- Luxury Gold & Diamond Gradients -->
+    <linearGradient id="dw-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF3D4"/>
+      <stop offset="30%" stop-color="#F2C94C"/>
+      <stop offset="70%" stop-color="#E5A638"/>
+      <stop offset="100%" stop-color="#B27A1A"/>
+    </linearGradient>
+    <linearGradient id="dw-platinum" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="50%" stop-color="#E2E8F0"/>
+      <stop offset="100%" stop-color="#94A3B8"/>
+    </linearGradient>
+    <linearGradient id="dw-sparkle" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#38BDF8"/>
+    </linearGradient>
+    <radialGradient id="dw-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#38BDF8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background Soft Subtle Glow Behind Diamond -->
+  <circle cx="50" cy="50" r="42" fill="url(#dw-glow)"/>
+
+  <!-- Faceted Brilliant Cut Diamond Emblem -->
+  <g transform="translate(18, 18) scale(0.68)">
+    <!-- Crown Top Table -->
+    <polygon points="32,18 64,18 78,38 18,38" fill="url(#dw-platinum)" stroke="#CBD5E1" stroke-width="1.2" />
+    <!-- Table Face Inner Highlight -->
+    <polygon points="38,20 58,20 68,36 28,36" fill="#FFFFFF" fill-opacity="0.6"/>
+    <!-- Left Star Facet -->
+    <polygon points="18,38 32,18 38,20 28,36" fill="url(#dw-gold)" fill-opacity="0.75"/>
+    <!-- Right Star Facet -->
+    <polygon points="64,18 78,38 68,36 58,20" fill="url(#dw-gold)" fill-opacity="0.85"/>
+    <!-- Center Pavilion V-Cut -->
+    <polygon points="18,38 78,38 48,84" fill="url(#dw-platinum)" stroke="#94A3B8" stroke-width="1.2"/>
+    <!-- Pavilion Left Shadow Facet -->
+    <polygon points="18,38 48,84 38,44" fill="#64748B" fill-opacity="0.45"/>
+    <!-- Pavilion Right Highlight Facet -->
+    <polygon points="78,38 48,84 58,44" fill="url(#dw-gold)" fill-opacity="0.65"/>
+    <!-- Pavilion Center Light Shaft -->
+    <polygon points="38,44 48,38 58,44 48,84" fill="#FFFFFF" fill-opacity="0.8"/>
+
+    <!-- Sparkle Stars -->
+    <path d="M78 20 L80 26 L86 28 L80 30 L78 36 L76 30 L70 28 L76 26 Z" fill="url(#dw-gold)"/>
+    <path d="M16 54 L17.5 58 L22 59.5 L17.5 61 L16 65 L14.5 61 L10 59.5 L14.5 58 Z" fill="#38BDF8"/>
+  </g>
+
+  <!-- Typography: DIAMOND WORLD -->
+  <text x="106" y="52" 
+        font-family="'Cinzel', 'Times New Roman', 'Georgia', serif" 
+        font-size="28" 
+        font-weight="700" 
+        letter-spacing="4.5" 
+        fill="url(#dw-platinum)">
+    DIAMOND
+  </text>
+  <text x="264" y="52" 
+        font-family="'Cinzel', 'Times New Roman', 'Georgia', serif" 
+        font-size="28" 
+        font-weight="700" 
+        letter-spacing="4.5" 
+        fill="url(#dw-gold)">
+    WORLD
+  </text>
+
+  <!-- Divider Line & Gem Dot -->
+  <line x1="108" y1="63" x2="242" y2="63" stroke="url(#dw-gold)" stroke-width="1" stroke-opacity="0.6"/>
+  <circle cx="249" cy="63" r="2" fill="#F2C94C"/>
+  <line x1="256" y1="63" x2="390" y2="63" stroke="url(#dw-gold)" stroke-width="1" stroke-opacity="0.6"/>
+
+  <!-- Subtitle: THE ART OF BEAUTY -->
+  <text x="249" y="80" 
+        text-anchor="middle" 
+        font-family="'Plus Jakarta Sans', 'Segoe UI', sans-serif" 
+        font-size="11" 
+        font-weight="600" 
+        letter-spacing="7" 
+        fill="#E2E8F0" 
+        opacity="0.85">
+    THE ART OF BEAUTY
+  </text>
+</svg>

@@ -1,0 +1,8 @@
+{
+  "name": "Diamond World LTD Stock Operations ERP",
+  "description": "Enterprise diamond stock operations, 0.02ct solitaire allocation, branch replenishment, movement & aging intelligence, and factory requisitions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

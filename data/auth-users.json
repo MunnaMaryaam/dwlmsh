@@ -1,0 +1,14 @@
+[
+  {
+    "id": "owner-admin-1",
+    "username": "admin",
+    "name": "MD Shahadat Hossen",
+    "designation": "System Owner & Master Administrator",
+    "role": "admin",
+    "status": "approved",
+    "isOwner": true,
+    "passwordHash": "fb338ad47f903a4b85a1294b149e95f3e97e4ef3af4a61c4dd45f02f8e3d8d8c12175dd749f4b091e95668e530b9ab369e62d3b341b04206d04cf3e94dd19053",
+    "passwordSalt": "4a27121ace973dde878ee16b81127d6a",
+    "createdAt": "2026-09-21"
+  }
+]

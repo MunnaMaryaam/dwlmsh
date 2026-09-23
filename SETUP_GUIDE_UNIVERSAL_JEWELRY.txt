@@ -1,0 +1,104 @@
+DIAMOND WORLD LTD — UNIVERSAL JEWELRY STOCK ERP
+================================================
+
+WHAT THIS VERSION DOES
+-----------------------
+- Universal item allocation: Nosepin, Earring, Finger Ring, Locket, Necklace, Bracelet, Solitaire, SKU, Variant, or any other item identifier.
+- Allocation uses company-wide stock (showrooms + branch stock + warehouse/central stock), retail 3-month sales contribution, 3-month coverage, optional growth multiplier, integer rounding, surplus/shortage matching, and protected reserve.
+- Data parser accepts Excel, CSV/TSV, JSON, XML, HTML and supported report formats. Legacy diamond/carat reports remain compatible; the UI is no longer locked to a specific carat or solitaire item.
+
+SECURE ACCESS
+-------------
+Initial System Owner:
+  Username: admin
+  Password: 0000
+  Display Name: MD Shahadat Hossen
+  Role: SYSTEM OWNER / MASTER ADMINISTRATOR
+
+The owner account is protected inside the application and cannot be removed/revoked from the UI or owner management API.
+
+NEW USER FLOW
+-------------
+1. User selects Create account.
+2. User submits name, username and password.
+3. Account is created with PENDING status and cannot log in yet.
+4. System owner logs in and opens Owner Access Control.
+5. Owner approves or rejects the account.
+6. Approved users can sign in.
+
+FORGOT PASSWORD FLOW
+--------------------
+1. User selects Forgot password and enters username.
+2. The system creates a recovery request for an existing approved account without revealing whether the username exists.
+3. System owner sees the request in Owner Access Control.
+4. Owner sets a new password for that user.
+5. Existing sessions for that user are invalidated after reset.
+
+USER PERMISSIONS
+----------------
+SYSTEM OWNER (admin):
+- Full application access
+- Approve/reject new users
+- Reset non-owner passwords
+- Revoke/delete non-owner accounts
+- Owner account cannot be removed/replaced through the app
+
+OTHER APPROVED USERS:
+- Upload/import inventory and sales data
+- Export reports/data
+- Read and analyze dashboards/reports
+- No access to User Management or Settings administration
+- No API permission to manage accounts or change owner credentials
+
+RUN LOCALLY
+-----------
+Requirements: Node.js 20+ recommended.
+
+1. Open terminal in the project folder.
+2. Run: npm install
+3. Run: npm run dev
+4. Open: http://localhost:3000
+
+BUILD FOR PRODUCTION
+--------------------
+1. npm install
+2. npm run build
+3. npm start
+
+AUTH DATA STORAGE
+-----------------
+The first server start automatically creates data/auth-users.json with the owner account.
+Passwords are stored as salted scrypt hashes; plaintext passwords are not stored.
+Do not delete the data/ folder in production unless you intentionally want to reinitialize authentication.
+
+IMPORTANT VERIFICATION NOTE
+---------------------------
+The source was checked with TypeScript parser diagnostics and the allocation engine was run through a runtime test scenario. Full npm build could not be executed in the packaging environment because project dependencies were not installed and the environment could not reach the npm registry.
+
+TROUBLESHOOTING - Recharts / react-is
+--------------------------------------
+If Vite shows: Failed to resolve import "react-is" from recharts, run:
+
+  npm install
+
+If the same error remains because of an old Vite cache, stop the server and run:
+
+  rmdir /s /q node_modules\.vite
+  npm install
+  npm run dev
+
+Or directly:
+
+  npm install react-is@^19.1.1
+
+Then open http://localhost:3000
+
+PRD IMPLEMENTATION
+------------------
+See PRD_ALLOCATION_ENGINE.md for the exact Dynamic Inventory Redistribution Engine methodology.
+The Allocation screen is universal: select any Item / SKU / Variant detected from uploaded stock and sales data.
+Status flags: ⚠️ Overstock, 📉 Less Stock, ✓ Balanced, 🏢 Warehouse.
+
+EASIER WINDOWS START
+--------------------
+Double-click START_APP.bat. It checks Node.js, installs dependencies and opens the ERP in your browser.
